@@ -291,6 +291,56 @@
     {% endif %}
   </div>
 
+  <!-- Market Average Comparison -->
+  {% if final_result is not none and live_prices and live_prices.get(selected_city) %}
+  {% set ma = live_prices[selected_city] %}
+  {% set diff = final_result - ma.avg %}
+  {% set diff_pct = ((diff / ma.avg) * 100)|round(1) %}
+  <div class="result-card show" id="marketCard" style="border-top:3px solid var(--warning);">
+    <h3 class="insights-title" style="color:var(--warning);"><i class="fas fa-map-pin"></i> {{ selected_city }} Market Snapshot
+      {% if ma.source == "live" %}<span class="badge badge-success" style="font-size:0.65rem;vertical-align:middle;margin-left:var(--space-2);">LIVE</span>
+      {% else %}<span class="badge badge-ghost" style="font-size:0.65rem;vertical-align:middle;margin-left:var(--space-2);">TRAINING DATA</span>{% endif %}
+    </h3>
+    <div class="insights-grid" style="grid-template-columns:repeat(4,1fr);">
+      <div class="insight-card">
+        <div class="insight-label">Market Avg (USD)</div>
+        <div class="insight-value" style="font-size:1.1rem;">${{ ma.avg }}</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-label">Market Avg (₹)</div>
+        <div class="insight-value" style="font-size:1.1rem;">₹{{ (ma.avg * 83)|round(2) }}</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-label">Price Range</div>
+        <div class="insight-value" style="font-size:1rem;">${{ ma.min }} – ${{ ma.max }}</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-label">Listings Analyzed</div>
+        <div class="insight-value" style="font-size:1.1rem;">{{ ma.count }}</div>
+      </div>
+    </div>
+    <div class="market-compare-bar" style="margin-top:var(--space-4);padding:var(--space-3);background:var(--surface);border-radius:var(--radius-md);">
+      <div style="display:flex;justify-content:space-between;margin-bottom:var(--space-2);font-size:0.85rem;">
+        <span>Your Price: <strong>${{ final_result }}</strong></span>
+        <span>Market Avg: <strong>${{ ma.avg }}</strong></span>
+      </div>
+      <div class="insight-bar" style="height:24px;background:var(--border);border-radius:var(--radius-sm);overflow:hidden;position:relative;">
+        <div class="insight-bar-fill" style="width:{{ (final_result / (ma.max or 1) * 100)|round }}%;height:100%;background:{% if diff_pct > 10 %}var(--success){% elif diff_pct < -10 %}var(--danger){% else %}var(--warning){% endif %};transition:width 1s ease;"></div>
+        <div class="insight-bar-fill" style="width:{{ (ma.avg / (ma.max or 1) * 100)|round }}%;height:4px;background:var(--primary);position:absolute;bottom:0;left:0;"></div>
+      </div>
+      <div style="text-align:center;margin-top:var(--space-2);font-size:0.9rem;font-weight:600;">
+        {% if diff_pct > 5 %}
+        <span style="color:var(--success);">⬆ {{ diff_pct }}% above market average</span>
+        {% elif diff_pct < -5 %}
+        <span style="color:var(--danger);">⬇ {{ diff_pct }}% below market average</span>
+        {% else %}
+        <span style="color:var(--warning);">➡ Near market average</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Market Insights -->
   {% if insights is not none %}
   <div class="result-card show" id="insightsCard" style="border-top:3px solid var(--primary);">

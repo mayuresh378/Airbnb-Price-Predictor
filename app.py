@@ -3,8 +3,10 @@ import csv
 import io
 import uuid
 import json
+import requests
+import time
 from io import StringIO
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask import (
     Flask, request, render_template, redirect, url_for,
@@ -46,6 +48,34 @@ INDIAN_CITY_MAP = {
     "Goa": "LA", "Kolkata": "Chicago", "Jaipur": "Boston"
 }
 
+US_TO_INDIAN = {}
+for in_city, us_c in INDIAN_CITY_MAP.items():
+    US_TO_INDIAN.setdefault(us_c, []).append(in_city)
+
+MARKET_AVERAGES = {}
+_csv_path = os.path.join(os.path.dirname(__file__), "Artifacts", "train_data.csv")
+if os.path.exists(_csv_path):
+    try:
+        import pandas as pd
+        import numpy as np
+        _df = pd.read_csv(_csv_path)
+        if 'log_price' in _df.columns:
+            _df['_price'] = np.exp(_df['log_price'])
+        elif 'price' in _df.columns:
+            _df['_price'] = _df['price']
+        _stats = _df.groupby('city')['_price'].agg(['mean', 'min', 'max', 'count']).to_dict('index')
+        for _us_c, _data in _stats.items():
+            if _us_c in US_TO_INDIAN:
+                for _in_c in US_TO_INDIAN[_us_c]:
+                    MARKET_AVERAGES[_in_c] = {
+                        "avg": round(_data['mean'], 2),
+                        "min": round(_data['min'], 2),
+                        "max": round(_data['max'], 2),
+                        "count": int(_data['count'])
+                    }
+    except Exception:
+        pass
+
 INDIAN_COORDS = {
     "Mumbai": (19.0760, 72.8777), "Delhi": (28.7041, 77.1025),
     "Bangalore": (12.9716, 77.5946), "Chennai": (13.0827, 80.2707),
@@ -53,6 +83,52 @@ INDIAN_COORDS = {
     "Goa": (15.4909, 73.8278), "Kolkata": (22.5726, 88.3639),
     "Jaipur": (26.9124, 75.7873)
 }
+
+RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY", "")
+LIVE_PRICE_CACHE = {}
+LIVE_PRICE_CACHE_TIME = {}
+
+def fetch_live_prices(city_name):
+    now = time.time()
+    key = city_name.lower()
+    if key in LIVE_PRICE_CACHE and (now - LIVE_PRICE_CACHE_TIME.get(key, 0)) < 1800:
+        return LIVE_PRICE_CACHE[key]
+    result = None
+    if RAPIDAPI_KEY:
+        try:
+            h = {"X-RapidAPI-Key": RAPIDAPI_KEY, "X-RapidAPI-Host": "airbnb13.p.rapidapi.com"}
+            p = {
+                "location": city_name + ", India",
+                "checkin": (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d"),
+                "checkout": (datetime.now() + timedelta(days=10)).strftime("%Y-%m-%d"),
+                "adults": "1", "currency": "USD"
+            }
+            r = requests.get("https://airbnb13.p.rapidapi.com/search-location", params=p, headers=h, timeout=10)
+            if r.status_code == 200:
+                d = r.json()
+                results = d.get("results", [])
+                if results:
+                    prices = []
+                    for item in results:
+                        pp = item.get("price")
+                        if isinstance(pp, dict):
+                            pv = pp.get("rate", pp.get("total", 0))
+                        else:
+                            pv = pp
+                        if pv and float(pv) > 0:
+                            prices.append(float(pv))
+                    if prices:
+                        result = {"avg": round(sum(prices)/len(prices), 2), "min": round(min(prices), 2), "max": round(max(prices), 2), "count": len(prices), "source": "live"}
+        except Exception:
+            pass
+    if not result:
+        result = MARKET_AVERAGES.get(city_name)
+        if result:
+            result = {**result, "source": "model"}
+    if result:
+        LIVE_PRICE_CACHE[key] = result
+        LIVE_PRICE_CACHE_TIME[key] = now
+    return result
 
 def run_prediction(property_type, room_type, amenities, accommodates, bathrooms,
                    bed_type, cancellation_policy, cleaning_fee, city,
@@ -283,22 +359,28 @@ def predict():
                 request.form, us_city, lat, lng, amenities_count
             )
 
+            live_prices = {}
+            for city in ["Mumbai", "Delhi", "Bangalore", "Chennai", "Hyderabad", "Pune", "Goa", "Kolkata", "Jaipur"]:
+                lp = fetch_live_prices(city)
+                if lp:
+                    live_prices[city] = lp
+
             return render_template("predict.html", final_result=result,
                                    insights=insights, city_comparison=city_comparison,
                                    selected_city=indian_city, max_city_price=max_city_price,
-                                   prediction_id=pred.id)
+                                   prediction_id=pred.id, live_prices=live_prices)
 
         except Exception as e:
             flash(f"Prediction error: {str(e)}", "error")
             return render_template("predict.html", final_result=None,
                                    insights=None, city_comparison=None,
                                    selected_city=None, max_city_price=None,
-                                   prediction_id=None)
+                                   prediction_id=None, live_prices={})
 
     return render_template("predict.html", final_result=None,
                            insights=None, city_comparison=None,
                            selected_city=None, max_city_price=None,
-                           prediction_id=None)
+                           prediction_id=None, live_prices={})
 
 # ─── Dashboard ──────────────────────────────────────────────────────
 
