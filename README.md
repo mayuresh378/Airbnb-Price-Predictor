@@ -1,106 +1,135 @@
-# End to End Airbnb-Price-Prediction 
+# Airbnb Price Predictor
 
-## Introduction
-In today's fast-paced world, the way we travel and seek accommodations has undergone a remarkable transformation, thanks to platforms like Airbnb. This dynamic marketplace has empowered property owners and travellers, offering a diverse range of lodging options. However, one enduring challenge is setting the right price for a listing. Hosts aspire to optimize their earnings while ensuring competitive pricing, while guests seek value for their money. Balancing these interests can be intricate, and that's where the motivation for Airbnb price prediction comes in.
+A full-stack machine learning web app that predicts Airbnb listing prices for Indian cities using CatBoost. Features Google OAuth, interactive price calculator with Leaflet map, analytics dashboard, currency converter, and batch CSV prediction.
 
-## Motivation 
-To harness the power of data science and machine learning to provide more accurate and data-driven pricing strategies for Airbnb hosts and guests. By developing predictive models that factor in myriad variables such as location, property type, and market dynamics, the objective is to help hosts maximize their income and guests find fair deals. In this exploration of Airbnb price prediction, we will delve into methodologies, data sources, and emerging trends, shedding light on how technology is enhancing the overall Airbnb experience for both hosts and travellers.
+## Features
 
+- **Price Prediction** — Predict optimal listing price based on 10+ property features (room type, property type, amenities, location, etc.)
+- **Interactive Map** — Drag-and-drop marker on Leaflet map for location-based pricing
+- **Currency Converter** — Real-time USD/INR exchange rates
+- **ROI Calculator** — Estimate annual revenue and occupancy
+- **Market Insights** — Compare your price against similar listings in the city
+- **Analytics Dashboard** — Chart.js visualizations (bar, doughnut, line charts) of prediction history
+- **Prediction History** — Filterable, paginated table with CSV export
+- **Google OAuth** — Sign in with Google for personalized experience
+- **Batch CSV Prediction** — REST API endpoint for bulk predictions
+- **Responsive Design** — Glassmorphism UI with dark mode, mobile navigation
 
-# Installation Guide
+## Tech Stack
 
-This guide provides step-by-step instructions on how to install and set up the Airbnb Price Prediction project. You can choose to install it either directly from GitHub or using a Docker container from DockerHub.
+| Layer | Technology |
+|-------|-----------|
+| Backend | Flask, SQLAlchemy, Authlib |
+| ML Model | CatBoost (trained on 70k+ listings) |
+| Frontend | Vanilla JS, Chart.js, Leaflet.js |
+| Styling | Custom CSS (glassmorphism, dark mode) |
+| Database | SQLite (dev) / PostgreSQL (production) |
+| Deployment | Docker / Render |
 
-## Prerequisites
+## Project Structure
 
-Before you begin, make sure you have the following prerequisites installed on your system:
+```
+├── app.py                      # Flask application with all routes
+├── models.py                   # SQLAlchemy models (User, Prediction)
+├── requirements.txt            # Python dependencies
+├── Dockerfile                  # Docker image
+├── docker-compose.yml          # Docker Compose config
+├── Procfile                    # Render deployment config
+├── render.yaml                 # Render blueprint (web + PostgreSQL)
+├── .gitignore                  # Git ignore rules
+├── Artifacts/
+│   ├── Model.pkl               # Trained CatBoost model
+│   └── Preprocessor.pkl        # Data preprocessor
+├── src/Airbnb/pipelines/
+│   └── Prediction_Pipeline.py  # Model loading and prediction
+├── static/
+│   ├── style.css               # Complete design system
+│   └── script.js               # Frontend logic
+├── templates/
+│   ├── base.html               # Layout with navbar, footer, toast
+│   ├── index.html              # Landing page with hero, stats, CTA
+│   ├── predict.html            # Price prediction form
+│   ├── dashboard.html          # Analytics dashboard
+│   ├── history.html            # Prediction history
+│   ├── login.html              # Login with Google OAuth
+│   ├── register.html           # Registration
+│   ├── about.html              # About the project
+│   └── report.html             # Detailed prediction report
+└── Notebook_Experiments/       # Jupyter notebooks (EDA, training)
+```
 
- - Numpy
- - Pandas
- - Seaborn
- - Matplotlib
- - Scikit-learn
- - xgboost
- - Flask
- - Pillow
- - Catboost
- - DVC
+## Quick Start
 
-## Installation Steps
+### Prerequisites
 
-### Option 1: Installation from GitHub
+- Python 3.11+
+- pip
 
-Follow these steps to install and set up the project directly from the GitHub repository:
+### Local Setup
 
-1. **Clone the Repository**
-   - Open your terminal or command prompt.
-   - Navigate to the directory where you want to install the project.
-   - Run the following command to clone the GitHub repository:
-     ```
-     git clone https://github.com/KalyanMurapaka45/Airbnb-Price-Prediction.git
-     ```
+```bash
+# Clone the repository
+git clone https://github.com/mayuresh378/airbnb-price-predictor.git
+cd airbnb-price-predictor
 
-2. **Create a Virtual Environment** (Optional but recommended)
-   - It's a good practice to create a virtual environment to manage project dependencies. Run the following command:
-     ```
-     conda create -p <Environment_Name> python==<python version> -y
-     ```
+# Install dependencies
+pip install -r requirements.txt
 
-3. **Activate the Virtual Environment** (Optional)
-   - Activate the virtual environment based on your operating system:
-       ```
-       conda activate <Environment_Name>/
-       ```
+# Set environment variables (optional for local dev)
+# set GOOGLE_CLIENT_ID=your-client-id
+# set GOOGLE_CLIENT_SECRET=your-client-secret
+# set SECRET_KEY=your-secret-key
 
-4. **Install Dependencies**
-   - Navigate to the project directory:
-     ```
-     cd [project_directory]
-     ```
-   - Run the following command to install project dependencies:
-     ```
-     pip install -r requirements.txt
-     ```
+# Run the app
+python app.py
+```
 
-5. **Run the Project**
-   - Start the project by running the appropriate command.
-     ```
-     python app.py
-     ```
+Open http://localhost:8080 in your browser.
 
-6. **Access the Project**
-   - Open a web browser or the appropriate client to access the project.
-  
-<br><br>
-### Option 2: Installation from DockerHub
+### Docker
 
-If you prefer to use Docker, you can install and run the project using a Docker container from DockerHub:
+```bash
+docker-compose up --build
+```
 
-1. **Pull the Docker Image**
-   - Open your terminal or command prompt.
-   - Run the following command to pull the Docker image from DockerHub:
-     ```
-     docker pull kalyan45/airbnb-app
-     ```
+## Google OAuth Setup
 
-2. **Run the Docker Container**
-   - Start the Docker container by running the following command, mapping any necessary ports:
-     ```
-     docker run -p 5000:5000 kalyan45/airbnb-app
-     ```
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a project → **APIs & Services** → **Credentials**
+3. Create **OAuth 2.0 Client ID** (Web application)
+4. Add authorized redirect URI: `http://localhost:8080/auth/google/callback`
+5. Set environment variables:
+   - `GOOGLE_CLIENT_ID`
+   - `GOOGLE_CLIENT_SECRET`
 
-3. **Access the Project**
-   - Open a web browser or the appropriate client to access the project.
+## Deployment on Render
 
-## Troubleshooting
+1. Push this repo to GitHub
+2. Go to [render.com](https://render.com) → **New Web Service**
+3. Connect your GitHub repo
+4. Render auto-detects `render.yaml` — provisions web service + PostgreSQL
+5. Set environment variables in Render dashboard:
+   - `GOOGLE_CLIENT_ID`
+   - `GOOGLE_CLIENT_SECRET`
+   - `SECRET_KEY` (auto-generated)
+6. Add callback URL in Google Cloud Console:
+   - `https://your-app.onrender.com/auth/google/callback`
 
-- If you encounter any issues during the installation process, Contact me at ```kalyanmurapaka274@gmail.com```
+## API Endpoints
 
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/predict` | POST | Single prediction (JSON) |
+| `/api/batch-predict` | POST | Batch CSV prediction |
+| `/api/stats` | GET | Prediction statistics |
+| `/predict` | GET/POST | Web form for prediction |
+| `/dashboard` | GET | Analytics dashboard |
+| `/history` | GET | Prediction history |
+| `/auth/google` | GET | Google OAuth login |
+| `/auth/google/callback` | GET | OAuth callback |
+| `/login` | GET | Login page |
+| `/register` | GET/POST | Registration |
 
-# Contributing
+## License
 
-We welcome contributions from the community! If you have any ideas or suggestions for improving the project, please feel free to create an issue or submit a pull request.
-
-# Acknowledgements
-
-This project was inspired by the Kaggle dataset on AirBNB Price Prediction and the corresponding competition. We also acknowledge the open-source Python libraries used in this project and their contributors.
+MIT
