@@ -1,32 +1,32 @@
-# Airbnb Price Predictor
+# 🏠 Airbnb Price Predictor
 
-A full-stack machine learning web app that predicts Airbnb listing prices for Indian cities using CatBoost. Features Google OAuth, interactive price calculator with Leaflet map, analytics dashboard, currency converter, and batch CSV prediction.
+A full-stack machine learning web app that predicts Airbnb listing prices for Indian cities using **CatBoost**. Features Google OAuth, interactive price calculator with Leaflet map, analytics dashboard, currency converter, and batch CSV prediction.
 
-## Features
+## ✨ Features
 
-- **Price Prediction** — Predict optimal listing price based on 10+ property features (room type, property type, amenities, location, etc.)
-- **Interactive Map** — Drag-and-drop marker on Leaflet map for location-based pricing
-- **Currency Converter** — Real-time USD/INR exchange rates
-- **ROI Calculator** — Estimate annual revenue and occupancy
-- **Market Insights** — Compare your price against similar listings in the city
-- **Analytics Dashboard** — Chart.js visualizations (bar, doughnut, line charts) of prediction history
-- **Prediction History** — Filterable, paginated table with CSV export
-- **Google OAuth** — Sign in with Google for personalized experience
-- **Batch CSV Prediction** — REST API endpoint for bulk predictions
-- **Responsive Design** — Glassmorphism UI with dark mode, mobile navigation
+- 🔮 **Price Prediction** — Predict optimal listing price based on 10+ property features (room type, property type, amenities, location, etc.)
+- 🗺️ **Interactive Map** — Drag-and-drop marker on Leaflet map for location-based pricing
+- 💱 **Currency Converter** — Real-time USD/INR exchange rates
+- 📊 **ROI Calculator** — Estimate annual revenue and occupancy
+- 📈 **Market Insights** — Compare your price against similar listings in the city
+- 📉 **Analytics Dashboard** — Chart.js visualizations (bar, doughnut, line charts) of prediction history
+- 📜 **Prediction History** — Filterable, paginated table with CSV export
+- 🔐 **Google OAuth** — Sign in with Google for personalized experience
+- 📦 **Batch CSV Prediction** — REST API endpoint for bulk predictions
+- 📱 **Responsive Design** — Glassmorphism UI with dark mode, mobile navigation
 
-## Tech Stack
+## 🛠️ Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Backend | Flask, SQLAlchemy, Authlib |
-| ML Model | CatBoost (trained on 70k+ listings) |
-| Frontend | Vanilla JS, Chart.js, Leaflet.js |
-| Styling | Custom CSS (glassmorphism, dark mode) |
-| Database | SQLite (dev) / PostgreSQL (production) |
-| Deployment | Docker / Render |
+| 🖥️ Backend | Flask, SQLAlchemy, Authlib |
+| 🤖 ML Model | CatBoost (trained on 70k+ listings) |
+| 🎨 Frontend | Vanilla JS, Chart.js, Leaflet.js |
+| 💄 Styling | Custom CSS (glassmorphism, dark mode) |
+| 🗄️ Database | SQLite (dev) / PostgreSQL (production) |
+| 🚀 Deployment | Docker / Render |
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 ├── app.py                      # Flask application with all routes
@@ -58,7 +58,7 @@ A full-stack machine learning web app that predicts Airbnb listing prices for In
 └── Notebook_Experiments/       # Jupyter notebooks (EDA, training)
 ```
 
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
 
@@ -84,15 +84,15 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Open http://localhost:8080 in your browser.
+Open http://localhost:8080 in your browser. 🎉
 
-### Docker
+### Docker 🐳
 
 ```bash
 docker-compose up --build
 ```
 
-## Google OAuth Setup
+## 🔑 Google OAuth Setup
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a project → **APIs & Services** → **Credentials**
@@ -102,7 +102,7 @@ docker-compose up --build
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_CLIENT_SECRET`
 
-## Deployment on Render
+## ☁️ Deployment on Render
 
 1. Push this repo to GitHub
 2. Go to [render.com](https://render.com) → **New Web Service**
@@ -115,7 +115,7 @@ docker-compose up --build
 6. Add callback URL in Google Cloud Console:
    - `https://your-app.onrender.com/auth/google/callback`
 
-## API Endpoints
+## 🌐 API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -130,6 +130,6 @@ docker-compose up --build
 | `/login` | GET | Login page |
 | `/register` | GET/POST | Registration |
 
-## License
+## 📄 License
 
 MIT
