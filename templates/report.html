@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Report #{{ pred.id }} — Airbnb Price Predictor{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="morph-blob morph-blob-1"></div>
+  <div class="morph-blob morph-blob-2"></div>
+  <div class="page-header-content">
+    <h1><i class="fas fa-file-alt"></i> <span class="page-header-brand">Prediction</span> <span class="page-header-highlight">Report</span> <span class="page-header-sub">#{{ pred.id }}</span></h1>
+    <p>{{ pred.created_at.strftime('%d %B %Y, %H:%M') if pred.created_at else '' }}</p>
+  </div>
+</div>
+
+<div class="container">
+  <div class="card" style="padding:var(--space-6);" id="reportContent">
+    <div class="report-header">
+      <div>
+        <div class="report-label">Estimated Nightly Price</div>
+        <div class="report-price">${{ pred.predicted_price }}</div>
+        <div class="report-sub">≈ ₹{{ (pred.predicted_price * 83)|round(2) }}</div>
+      </div>
+      <div class="report-badge">
+        <i class="fas fa-robot"></i> AI Generated
+      </div>
+    </div>
+
+    <div class="report-grid">
+      <div class="report-section">
+        <h3><i class="fas fa-building"></i> Property</h3>
+        <div class="detail-item"><span class="detail-label">Type</span><span class="detail-value">{{ pred.property_type or '-' }}</span></div>
+        <div class="detail-item"><span class="detail-label">Room</span><span class="detail-value">{{ pred.room_type or '-' }}</span></div>
+        <div class="detail-item"><span class="detail-label">Bed Type</span><span class="detail-value">{{ pred.bed_type or '-' }}</span></div>
+        <div class="detail-item"><span class="detail-label">Cancellation</span><span class="detail-value">{{ pred.cancellation_policy or '-' }}</span></div>
+        <div class="detail-item"><span class="detail-label">Cleaning Fee</span><span class="detail-value">{{ 'Yes' if pred.cleaning_fee == 'True' else 'No' }}</span></div>
+      </div>
+      <div class="report-section">
+        <h3><i class="fas fa-users"></i> Capacity</h3>
+        <div class="detail-item"><span class="detail-label">Bedrooms</span><span class="detail-value">{{ pred.bedrooms or 0 }}</span></div>
+        <div class="detail-item"><span class="detail-label">Beds</span><span class="detail-value">{{ pred.beds or 0 }}</span></div>
+        <div class="detail-item"><span class="detail-label">Accommodates</span><span class="detail-value">{{ pred.accommodates or 0 }}</span></div>
+        <div class="detail-item"><span class="detail-label">Bathrooms</span><span class="detail-value">{{ pred.bathrooms or 0 }}</span></div>
+        <div class="detail-item"><span class="detail-label">Amenities</span><span class="detail-value">{{ pred.amenities or 0 }}</span></div>
+      </div>
+      <div class="report-section">
+        <h3><i class="fas fa-map-marker-alt"></i> Location</h3>
+        <div class="detail-item"><span class="detail-label">City</span><span class="detail-value"><span class="badge">{{ pred.city or '-' }}</span></span></div>
+        <div class="detail-item"><span class="detail-label">Latitude</span><span class="detail-value">{{ pred.latitude }}</span></div>
+        <div class="detail-item"><span class="detail-label">Longitude</span><span class="detail-value">{{ pred.longitude }}</span></div>
+      </div>
+      <div class="report-section">
+        <h3><i class="fas fa-user-circle"></i> Host &amp; Reviews</h3>
+        <div class="detail-item"><span class="detail-label">Verified</span><span class="detail-value">{{ 'Yes' if pred.host_identity_verified == 't' else 'No' }}</span></div>
+        <div class="detail-item"><span class="detail-label">Response Rate</span><span class="detail-value">{{ pred.host_response_rate or 0 }}%</span></div>
+        <div class="detail-item"><span class="detail-label">Reviews</span><span class="detail-value">{{ pred.number_of_reviews or 0 }}</span></div>
+        <div class="detail-item"><span class="detail-label">Rating</span><span class="detail-value">{{ pred.review_scores_rating or 0 }}/100</span></div>
+        <div class="detail-item"><span class="detail-label">Instant Book</span><span class="detail-value">{{ 'Yes' if pred.instant_bookable == 't' else 'No' }}</span></div>
+      </div>
+    </div>
+
+    {% if pred.amenities_list %}
+    <div style="margin-top:var(--space-5);padding-top:var(--space-5);border-top:1px solid var(--card-border);">
+      <h3 style="font-size:var(--text-sm);font-weight:600;margin-bottom:var(--space-3);display:flex;align-items:center;gap:var(--space-1-5);">
+        <i class="fas fa-wifi" style="color:var(--primary);"></i> Amenities
+      </h3>
+      <div style="display:flex;flex-wrap:wrap;gap:var(--space-2);">
+        {% for a in pred.amenities_list.split(',') %}
+        <span class="badge">{{ a }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="report-actions">
+    <button onclick="window.print()" class="btn btn-primary">
+      <i class="fas fa-print"></i> Print / Save PDF
+    </button>
+    <a href="{{url_for('history')}}" class="btn btn-ghost">
+      <i class="fas fa-arrow-left"></i> Back to History
+    </a>
+  </div>
+</div>
+{% endblock %}

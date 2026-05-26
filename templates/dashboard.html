@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% set active_page = "dashboard" %}
+
+{% block title %}Dashboard — Airbnb Price Predictor{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="morph-blob morph-blob-1"></div>
+  <div class="morph-blob morph-blob-2"></div>
+  <div class="page-header-content">
+    <h1><i class="fas fa-chart-pie"></i> <span class="page-header-brand">Analytics</span> <span class="page-header-highlight">Dashboard</span></h1>
+    <p>Welcome, {{ user }}</p>
+  </div>
+</div>
+
+<div class="container">
+  {% if not predictions %}
+  <div class="empty-state">
+    <div class="empty-state-icon"><i class="fas fa-chart-line"></i></div>
+    <h3>No predictions yet</h3>
+    <p>Start by making your first prediction!</p>
+    <a href="{{url_for('predict')}}" class="btn btn-primary">
+      <i class="fas fa-chart-line"></i> Go to Predictor
+    </a>
+  </div>
+  {% else %}
+
+  <div class="stats-grid">
+    <div class="stat-card fade-in">
+      <div class="stat-icon"><i class="fas fa-calculator"></i></div>
+      <div class="stat-value" data-target="{{ stats.total_predictions }}">0</div>
+      <div class="stat-label">Total Predictions</div>
+    </div>
+    <div class="stat-card fade-in">
+      <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+      <div class="stat-value" data-target="{{ stats.avg_price }}">0</div>
+      <div class="stat-label">Avg. Price (USD)</div>
+    </div>
+    <div class="stat-card fade-in">
+      <div class="stat-icon"><i class="fas fa-city"></i></div>
+      <div class="stat-value" data-target="{{ stats.unique_cities }}">0</div>
+      <div class="stat-label">Cities Analyzed</div>
+    </div>
+    <div class="stat-card fade-in">
+      <div class="stat-icon"><i class="fas fa-star"></i></div>
+      <div class="stat-value" data-target="{{ stats.avg_reviews|int }}">0</div>
+      <div class="stat-label">Avg. Reviews</div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card fade-in">
+      <h3><i class="fas fa-city"></i> Average Price by City</h3>
+      <canvas id="cityChart"></canvas>
+    </div>
+    <div class="chart-card fade-in">
+      <h3><i class="fas fa-door-open"></i> Room Type Distribution</h3>
+      <canvas id="roomChart"></canvas>
+    </div>
+    <div class="chart-card full-width fade-in">
+      <h3><i class="fas fa-calendar-alt"></i> Monthly Prediction Trend</h3>
+      <canvas id="monthlyChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card" style="overflow:hidden;">
+    <div style="padding:var(--space-5);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--space-3);border-bottom:1px solid var(--card-border);">
+      <h3 style="font-size:var(--text-base);font-weight:600;display:flex;align-items:center;gap:var(--space-2);">
+        <i class="fas fa-clock" style="color:var(--primary);"></i> Recent Predictions
+      </h3>
+      <a href="{{url_for('history')}}" class="btn btn-ghost btn-sm">
+        View All <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>City</th>
+            <th>Room Type</th>
+            <th>Bedrooms</th>
+            <th>Price (USD)</th>
+            <th>Price (INR)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in predictions[:10] %}
+          <tr>
+            <td>{{ p.created_at.strftime('%d %b %Y') if p.created_at else '-' }}</td>
+            <td>{{ p.city or '-' }}</td>
+            <td>{{ p.room_type or '-' }}</td>
+            <td>{{ p.bedrooms or 0 }}</td>
+            <td><strong>${{ p.predicted_price }}</strong></td>
+            <td>₹{{ (p.predicted_price * 83)|round(2) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+{% if predictions %}
+document.addEventListener('DOMContentLoaded', function() {
+  var cityData = {{ city_data|safe }};
+  if (document.getElementById('cityChart') && cityData.length) {
+    var ctx = document.getElementById('cityChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: cityData.map(function(d){ return d.city; }),
+        datasets: [{
+          label: 'Avg Price (USD)',
+          data: cityData.map(function(d){ return d.avg_price; }),
+          backgroundColor: [
+            'rgba(239,68,68,0.85)', 'rgba(249,115,22,0.85)', 'rgba(20,184,166,0.85)',
+            'rgba(59,130,246,0.85)', 'rgba(168,85,247,0.85)', 'rgba(236,72,153,0.85)',
+            'rgba(239,68,68,0.6)', 'rgba(249,115,22,0.6)', 'rgba(20,184,166,0.6)'
+          ],
+          borderRadius: 4,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
+      }
+    });
+  }
+  var roomData = {{ room_data|safe }};
+  if (document.getElementById('roomChart') && roomData.length) {
+    var ctx2 = document.getElementById('roomChart').getContext('2d');
+    new Chart(ctx2, {
+      type: 'doughnut',
+      data: {
+        labels: roomData.map(function(d){ return d.room_type; }),
+        datasets: [{
+          data: roomData.map(function(d){ return d.count; }),
+          backgroundColor: ['rgba(239,68,68,0.85)', 'rgba(20,184,166,0.85)', 'rgba(249,115,22,0.85)'],
+          borderWidth: 0,
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        cutout: '65%',
+        plugins: { legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true } } }
+      }
+    });
+  }
+  var monthlyData = {{ monthly_data|safe }};
+  if (document.getElementById('monthlyChart') && monthlyData.length) {
+    var ctx3 = document.getElementById('monthlyChart').getContext('2d');
+    var grad = ctx3.createLinearGradient(0, 0, 0, 200);
+    grad.addColorStop(0, 'rgba(239,68,68,0.2)');
+    grad.addColorStop(1, 'rgba(239,68,68,0)');
+    new Chart(ctx3, {
+      type: 'line',
+      data: {
+        labels: monthlyData.map(function(d){ return d.month; }),
+        datasets: [{
+          label: 'Avg Price (USD)',
+          data: monthlyData.map(function(d){ return d.avg_price; }),
+          borderColor: '#ef4444',
+          backgroundColor: grad,
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#ef4444',
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } }
+      }
+    });
+  }
+});
+{% endif %}
+</script>
+{% endblock %}

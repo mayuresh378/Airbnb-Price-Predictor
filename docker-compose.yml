@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./instance:/app/instance
+    environment:
+      - SECRET_KEY=change-this-to-a-random-secret-key
+      - FLASK_ENV=production
+    restart: unless-stopped

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AI-powered Airbnb price prediction for Indian listings. Get accurate nightly price estimates with CatBoost machine learning.">
+  <meta name="theme-color" content="#ef4444">
+  <meta property="og:title" content="{% block og_title %}Airbnb Price Predictor{% endblock %}">
+  <meta property="og:description" content="ML-powered price estimation for Indian Airbnb listings.">
+  <meta property="og:type" content="website">
+  <title>{% block title %}Airbnb Price Predictor — India{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Theme Toggle -->
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle theme">
+    <i class="fas fa-moon"></i>
+  </button>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" role="status" aria-live="polite"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="nav-inner">
+      <a href="{{url_for('home')}}" class="nav-logo" aria-label="Home">
+        <span class="nav-logo-icon"><i class="fas fa-home"></i></span>
+        <span class="nav-logo-text"><span class="nav-logo-brand">Airbnb</span><span class="nav-logo-highlight">Predictor</span></span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="{{url_for('home')}}" class="nav-item {% if active_page == 'home' %}active{% endif %}">
+          <i class="fas fa-home"></i> <span class="nav-item-text">Home</span>
+        </a>
+        <a href="{{url_for('predict')}}" class="nav-item {% if active_page == 'predict' %}active{% endif %}">
+          <i class="fas fa-chart-line"></i> <span class="nav-item-text">Predict</span>
+        </a>
+        {% if session.user_id %}
+        <a href="{{url_for('dashboard')}}" class="nav-item {% if active_page == 'dashboard' %}active{% endif %}">
+          <i class="fas fa-chart-pie"></i> <span class="nav-item-text">Dashboard</span>
+        </a>
+        <a href="{{url_for('history')}}" class="nav-item {% if active_page == 'history' %}active{% endif %}">
+          <i class="fas fa-history"></i> <span class="nav-item-text">History</span>
+        </a>
+        {% endif %}
+        <a href="{{url_for('about')}}" class="nav-item {% if active_page == 'about' %}active{% endif %}">
+          <i class="fas fa-info-circle"></i> <span class="nav-item-text">About</span>
+        </a>
+        <div class="nav-divider"></div>
+        {% if session.user_id %}
+        <span class="nav-user"><i class="fas fa-user-circle"></i> {{ session.username }}</span>
+        <a href="{{url_for('logout')}}" class="nav-item">
+          <i class="fas fa-sign-out-alt"></i> <span class="nav-item-text">Logout</span>
+        </a>
+        {% else %}
+        <a href="{{url_for('login')}}" class="nav-item">
+          <i class="fas fa-sign-in-alt"></i> <span class="nav-item-text">Login</span>
+        </a>
+        <a href="{{url_for('register')}}" class="nav-item nav-register">
+          <i class="fas fa-user-plus"></i> <span class="nav-item-text">Register</span>
+        </a>
+        {% endif %}
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Flash Messages (converted to toasts by JS) -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div id="flashData" style="display:none;">
+      {% for category, message in messages %}
+      <span data-category="{{ category }}" data-message="{{ message }}"></span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Main Content -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-inner">
+      <div class="footer-col">
+        <div class="footer-logo">
+          <span class="footer-logo-icon"><i class="fas fa-home"></i></span>
+          <span class="footer-brand-text">Airbnb</span>
+          <span class="footer-highlight-text">Price Predictor</span>
+        </div>
+        <p>ML-powered price estimation for Indian Airbnb listings. Get real-time market insights and maximize your rental earnings.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <a href="{{url_for('home')}}">Home</a>
+        <a href="{{url_for('predict')}}">Predict Price</a>
+        <a href="{{url_for('about')}}">About</a>
+      </div>
+      <div class="footer-col">
+        <h4>Account</h4>
+        {% if session.user_id %}
+        <a href="{{url_for('dashboard')}}">Dashboard</a>
+        <a href="{{url_for('history')}}">History</a>
+        <a href="{{url_for('logout')}}">Logout</a>
+        {% else %}
+        <a href="{{url_for('login')}}">Login</a>
+        <a href="{{url_for('register')}}">Register</a>
+        {% endif %}
+      </div>
+      <div class="footer-col">
+        <h4>Tech Stack</h4>
+        <div class="tech-pills">
+          <span class="tech-pill">Flask</span>
+          <span class="tech-pill">CatBoost</span>
+          <span class="tech-pill">Scikit-learn</span>
+          <span class="tech-pill">SQLite</span>
+          <span class="tech-pill">Chart.js</span>
+          <span class="tech-pill">Leaflet</span>
+          <span class="tech-pill">Python</span>
+          <span class="tech-pill">HTML5</span>
+          <span class="tech-pill">CSS3</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; 2026 Airbnb Price Predictor. Built with <i class="fas fa-heart" style="color:var(--primary);"></i> for India.
+    </div>
+  </footer>
+
+  <div id="scrollProgress"></div>
+  <div class="noise-overlay"></div>
+  <script src="{{url_for('static', filename='script.js')}}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% set active_page = "about" %}
+
+{% block title %}About — Airbnb Price Predictor{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="morph-blob morph-blob-1"></div>
+  <div class="morph-blob morph-blob-2"></div>
+  <div class="page-header-content">
+    <h1><i class="fas fa-info-circle"></i> <span class="page-header-brand">About</span> <span class="page-header-highlight">The Project</span></h1>
+    <p><i class="fas fa-lightbulb"></i> How AI is transforming Airbnb pricing in India</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="card" style="padding:var(--space-8);margin-bottom:var(--space-6);">
+    <div class="form-card-title"><i class="fas fa-bullseye"></i> What This Does</div>
+    <p style="line-height:var(--leading-relaxed);color:var(--text-secondary);font-size:var(--text-base);max-width:720px;">
+      This project uses machine learning to predict optimal nightly prices for Airbnb listings across Indian cities.
+      By analyzing property details, location, host information, and market trends, it provides data-driven pricing
+      recommendations to help hosts maximize their earnings.
+    </p>
+  </div>
+
+  <div class="about-grid">
+    <div class="card" style="padding:var(--space-8);">
+      <div class="form-card-title"><i class="fas fa-brain"></i> The Model</div>
+      <ul class="about-list">
+        <li><strong>Algorithm</strong><span class="about-colon">:</span> CatBoost Regressor</li>
+        <li><strong>Features</strong><span class="about-colon">:</span> 19 property, location &amp; host attributes</li>
+        <li><strong>Training Data</strong><span class="about-colon">:</span> Thousands of Airbnb listings</li>
+        <li><strong>Target</strong><span class="about-colon">:</span> Log-transformed nightly price</li>
+        <li><strong>Preprocessing</strong><span class="about-colon">:</span> Ordinal encoding + StandardScaler</li>
+      </ul>
+    </div>
+
+    <div class="card" style="padding:var(--space-8);">
+      <div class="form-card-title"><i class="fas fa-tools"></i> Technology Stack</div>
+      <div class="tech-grid">
+        <div class="tech-item"><span class="tech-icon"><i class="fab fa-python"></i></span><span class="tech-label">Python</span></div>
+        <div class="tech-item"><span class="tech-icon"><i class="fas fa-flask"></i></span><span class="tech-label">Flask</span></div>
+        <div class="tech-item"><span class="tech-icon"><i class="fas fa-database"></i></span><span class="tech-label">SQLite</span></div>
+        <div class="tech-item"><span class="tech-icon"><i class="fas fa-chart-line"></i></span><span class="tech-label">CatBoost</span></div>
+        <div class="tech-item"><span class="tech-icon"><i class="fas fa-chart-bar"></i></span><span class="tech-label">Chart.js</span></div>
+        <div class="tech-item"><span class="tech-icon"><i class="fas fa-map-marked-alt"></i></span><span class="tech-label">Leaflet.js</span></div>
+        <div class="tech-item"><span class="tech-icon"><i class="fas fa-robot"></i></span><span class="tech-label">Scikit-learn</span></div>
+        <div class="tech-item"><span class="tech-icon"><i class="fab fa-html5"></i></span><span class="tech-label">HTML5/CSS3</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="padding:var(--space-8);">
+    <div class="form-card-title"><i class="fas fa-cogs"></i> How It Works</div>
+    <div class="about-steps">
+      <div class="about-step fade-in">
+        <span class="about-step-num">01</span>
+        <div>
+          <h3>Data Collection</h3>
+          <p>Airbnb listing data is collected and preprocessed — missing values are imputed, categorical features are encoded, and numeric features are normalized.</p>
+        </div>
+      </div>
+      <div class="about-step fade-in">
+        <span class="about-step-num">02</span>
+        <div>
+          <h3>Model Training</h3>
+          <p>Multiple algorithms are evaluated (Linear Regression, Random Forest, Gradient Boosting, CatBoost). The best performing model is saved for predictions.</p>
+        </div>
+      </div>
+      <div class="about-step fade-in">
+        <span class="about-step-num">03</span>
+        <div>
+          <h3>Web Application</h3>
+          <p>Flask serves the model through a modern web interface with real-time exchange rates, interactive maps, and analytics dashboards.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="about-cta">
+    <div class="card" style="padding:var(--space-8);text-align:center;border:2px solid var(--primary);">
+      <div class="form-card-title" style="justify-content:center;"><i class="fas fa-rocket"></i> Ready to Try It?</div>
+      <p style="margin-top:var(--space-2);margin-bottom:var(--space-5);color:var(--text-secondary);">Get your AI-powered price estimate in seconds.</p>
+      <a href="{{url_for('predict')}}" class="btn btn-primary btn-lg">
+        <i class="fas fa-chart-line"></i> Predict Now
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% set active_page = "home" %}
+
+{% block title %}Airbnb Price Predictor — AI-Powered Pricing for India{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero" id="hero">
+  <div class="hero-glow hero-glow-1"></div>
+  <div class="hero-glow hero-glow-2"></div>
+  <div class="hero-glow hero-glow-3"></div>
+  <canvas class="hero-canvas" id="heroCanvas"></canvas>
+  <div class="hero-content">
+    <span class="hero-badge"><i class="fas fa-map-marker-alt"></i> India</span>
+    <h1>Price Your Airbnb<br><span class="hero-gradient-text shimmer-text">With AI Precision</span></h1>
+    <p class="hero-subtitle">Get real-time market estimates for your Indian listing. Powered by machine learning trained on thousands of data points across 9+ cities.</p>
+    <div class="hero-actions">
+      <a href="{{url_for('predict')}}" class="btn btn-primary btn-lg btn-magnetic">
+        <i class="fas fa-chart-line"></i> Predict Now
+      </a>
+      <a href="{{url_for('about')}}" class="btn btn-secondary">
+        <i class="fas fa-info-circle"></i> How It Works
+      </a>
+    </div>
+    <div class="hero-stats" id="heroStats">
+      <div class="hero-stat">
+        <span class="hero-stat-value" data-target="9" data-suffix="+">0</span>
+        <span class="hero-stat-label">Indian Cities</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-value" data-target="100" data-suffix="%">0</span>
+        <span class="hero-stat-label">ML Powered</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-value" data-target="83" data-suffix="₹">0</span>
+        <span class="hero-stat-label">Live INR Rate</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="section" id="features">
+  <div class="section-header fade-in">
+    <h2><span class="page-header-brand">Everything</span> <span class="page-header-highlight">You Need</span></h2>
+    <p>Smart tools to maximize your Airbnb earnings</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card fade-in fade-in-delay-1">
+      <div class="feature-icon"><i class="fas fa-robot"></i></div>
+      <h3>AI-Powered Predictions</h3>
+      <p>Trained on thousands of listings using CatBoost regression for accurate price estimation.</p>
+    </div>
+    <div class="feature-card fade-in fade-in-delay-2">
+      <div class="feature-icon"><i class="fas fa-chart-bar"></i></div>
+      <h3>Market Insights</h3>
+      <p>Compare prices across room types and Indian cities with real-time market analysis.</p>
+    </div>
+    <div class="feature-card fade-in fade-in-delay-3">
+      <div class="feature-icon"><i class="fas fa-coins"></i></div>
+      <h3>ROI Calculator</h3>
+      <p>Estimate your monthly and annual earnings with customizable occupancy rates.</p>
+    </div>
+    <div class="feature-card fade-in fade-in-delay-4">
+      <div class="feature-icon"><i class="fas fa-map-marked-alt"></i></div>
+      <h3>Interactive Map</h3>
+      <p>Visualize your listing location and explore prices across different Indian cities.</p>
+    </div>
+    <div class="feature-card fade-in fade-in-delay-5">
+      <div class="feature-icon"><i class="fas fa-history"></i></div>
+      <h3>Prediction History</h3>
+      <p>Save and track all your predictions with detailed reports and CSV export.</p>
+    </div>
+    <div class="feature-card fade-in fade-in-delay-6">
+      <div class="feature-icon"><i class="fas fa-exchange-alt"></i></div>
+      <h3>Live Currency Conversion</h3>
+      <p>View prices in USD, INR, EUR, GBP, JPY with real-time exchange rates.</p>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="section" style="border-top:1px solid var(--card-border);" id="howItWorks">
+  <div class="section-header fade-in">
+    <h2><span class="page-header-brand">How It</span> <span class="page-header-highlight">Works</span></h2>
+    <p>Three simple steps to price your listing</p>
+  </div>
+  <div class="steps-container">
+    <div class="step fade-in">
+      <div class="step-number">1</div>
+      <h3>Enter Details</h3>
+      <p>Fill in your property type, location, amenities, and host information.</p>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step fade-in">
+      <div class="step-number">2</div>
+      <h3>AI Analysis</h3>
+      <p>Our model analyzes thousands of data points to estimate your optimal price.</p>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step fade-in">
+      <div class="step-number">3</div>
+      <h3>Get Insights</h3>
+      <p>Receive market comparisons, ROI estimates, and a detailed report.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+  <section class="section cta-section">
+    <div class="section-decoration section-decoration-1"></div>
+    <div class="section-decoration section-decoration-2"></div>
+    <div class="section-decoration section-decoration-3"></div>
+    <div class="cta-card">
+      <div class="cta-glow cta-glow-1"></div>
+      <div class="cta-glow cta-glow-2"></div>
+      <div class="cta-dots"></div>
+      <h2><span class="cta-light">Ready to</span> <span class="cta-gradient">Price Your Listing</span>?</h2>
+      <p>Join hosts across India using AI to maximize their rental income.</p>
+      <a href="{{url_for('predict')}}" class="btn btn-primary btn-lg btn-magnetic">
+        <i class="fas fa-chart-line"></i> Get Started Now
+      </a>
+    </div>
+  </section>
+{% endblock %}

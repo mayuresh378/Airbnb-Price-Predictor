@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: airbnb-price-predictor
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 4 --timeout 120
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_ENV
+        value: production
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: DATABASE_URL
+        fromService:
+          type: postgresql
+          name: airbnb-db
+          property: connectionString
+
+  - type: postgresql
+    name: airbnb-db
+    plan: free
+    ipAllowList: []

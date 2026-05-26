@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+{% set active_page = "predict" %}
+
+{% block title %}Predict Price — Airbnb Price Predictor{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="morph-blob morph-blob-1"></div>
+  <div class="morph-blob morph-blob-2"></div>
+  <div class="page-header-content">
+    <h1><i class="fas fa-chart-line"></i> <span class="page-header-brand">Price</span> <span class="page-header-highlight">Predictor</span></h1>
+    <p><i class="fas fa-bolt"></i> Fill in your listing details for an AI-powered price estimate</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Live exchange rate banner -->
+  <div class="rate-banner">
+    <span><i class="fas fa-exchange-alt"></i> <span style="font-weight:600;color:var(--text);">Live rates:</span></span>
+    <span class="rate-value" id="liveRates">Loading...</span>
+    <span class="rate-time" id="rateTimestamp"></span>
+  </div>
+
+  <!-- Spinner -->
+  <div class="spinner-overlay" id="spinner">
+    <div class="spinner"></div>
+    <div class="spinner-text">Analyzing Indian market...</div>
+  </div>
+
+  <!-- Skeleton Loader (hidden by default) -->
+  <div class="skeleton-card" id="skeletonLoader" style="display:none;margin-top:var(--space-6);">
+    <div class="skeleton skeleton-title"></div>
+    <div class="skeleton skeleton-price"></div>
+    <div style="display:flex;gap:var(--space-3);justify-content:center;">
+      <div class="skeleton skeleton-line" style="width:100px;height:48px;border-radius:var(--radius-sm);"></div>
+      <div class="skeleton skeleton-line" style="width:100px;height:48px;border-radius:var(--radius-sm);"></div>
+      <div class="skeleton skeleton-line" style="width:100px;height:48px;border-radius:var(--radius-sm);"></div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <form id="predictionForm" action="{{url_for('predict')}}" method="POST" novalidate>
+
+    <div class="form-card fade-in">
+      <div class="form-card-title"><i class="fas fa-building"></i> Property Details</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-tag"></i> Property Type</label>
+          <select name="property_type" class="form-select" required>
+            <option value="Apartment">Apartment</option>
+            <option value="House">House</option>
+            <option value="Condominium">Condominium</option>
+            <option value="Villa">Villa</option>
+            <option value="Guesthouse">Guesthouse</option>
+            <option value="Bungalow">Bungalow</option>
+            <option value="Cabin">Cabin</option>
+            <option value="Bed & Breakfast">Bed & Breakfast</option>
+            <option value="Loft">Loft</option>
+            <option value="Townhouse">Townhouse</option>
+            <option value="Boutique hotel">Boutique Hotel</option>
+            <option value="Boat">Boat</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-door-open"></i> Room Type</label>
+          <select name="room_type" class="form-select" required>
+            <option value="Entire home/apt">Entire home/apt</option>
+            <option value="Private room">Private room</option>
+            <option value="Shared room">Shared room</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-bed"></i> Bed Type</label>
+          <select name="bed_type" class="form-select" required>
+            <option value="Real Bed">Real Bed</option>
+            <option value="Airbed">Airbed</option>
+            <option value="Couch">Couch</option>
+            <option value="Futon">Futon</option>
+            <option value="Pull-out Sofa">Pull-out Sofa</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-ban"></i> Cancellation Policy</label>
+          <select name="cancellation_policy" class="form-select" required>
+            <option value="flexible">Flexible</option>
+            <option value="moderate">Moderate</option>
+            <option value="strict">Strict</option>
+            <option value="super_strict_30">Super Strict 30</option>
+            <option value="super_strict_60">Super Strict 60</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card fade-in">
+      <div class="form-card-title"><i class="fas fa-users"></i> Capacity &amp; Spaces</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-user-friends"></i> Accommodates</label>
+          <div class="range-wrapper">
+            <input type="range" name="accommodates" id="accommodates" value="2" min="1" max="16" step="1">
+            <span class="range-value">2</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-bed"></i> Bedrooms</label>
+          <div class="range-wrapper">
+            <input type="range" name="bedrooms" id="bedrooms" value="1" min="0" max="10" step="1">
+            <span class="range-value">1</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-bed"></i> Beds</label>
+          <div class="range-wrapper">
+            <input type="range" name="beds" id="beds" value="1" min="0" max="18" step="1">
+            <span class="range-value">1</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-bath"></i> Bathrooms</label>
+          <div class="range-wrapper">
+            <input type="range" name="bathrooms" id="bathrooms" value="1" min="0" max="8" step="0.5">
+            <span class="range-value">1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card fade-in">
+      <div class="form-card-title">
+        <i class="fas fa-wifi"></i> Amenities
+        <span class="form-card-subtitle"><span id="amenityCount">0</span> selected</span>
+      </div>
+      <div class="amenities-grid">
+        <label class="amenity-checkbox"><input type="checkbox" name="amenities" value="Wifi"><span class="amenity-icon"><i class="fas fa-wifi"></i></span><span class="amenity-label">WiFi</span><span class="check-icon"><i class="fas fa-check"></i></span></label>
+        <label class="amenity-checkbox"><input type="checkbox" name="amenities" value="Kitchen"><span class="amenity-icon"><i class="fas fa-utensils"></i></span><span class="amenity-label">Kitchen</span><span class="check-icon"><i class="fas fa-check"></i></span></label>
+        <label class="amenity-checkbox"><input type="checkbox" name="amenities" value="Air Conditioning"><span class="amenity-icon"><i class="fas fa-snowflake"></i></span><span class="amenity-label">A/C</span><span class="check-icon"><i class="fas fa-check"></i></span></label>
+        <label class="amenity-checkbox"><input type="checkbox" name="amenities" value="Heating"><span class="amenity-icon"><i class="fas fa-fire"></i></span><span class="amenity-label">Heating</span><span class="check-icon"><i class="fas fa-check"></i></span></label>
+        <label class="amenity-checkbox"><input type="checkbox" name="amenities" value="Washer"><span class="amenity-icon"><i class="fas fa-soap"></i></span><span class="amenity-label">Washer</span><span class="check-icon"><i class="fas fa-check"></i></span></label>
+        <label class="amenity-checkbox"><input type="checkbox" name="amenities" value="Dryer"><span class="amenity-icon"><i class="fas fa-wind"></i></span><span class="amenity-label">Dryer</span><span class="check-icon"><i class="fas fa-check"></i></span></label>
+        <label class="amenity-checkbox"><input type="checkbox" name="amenities" value="Parking"><span class="amenity-icon"><i class="fas fa-car"></i></span><span class="amenity-label">Parking</span><span class="check-icon"><i class="fas fa-check"></i></span></label>
+        <label class="amenity-checkbox"><input type="checkbox" name="amenities" value="TV"><span class="amenity-icon"><i class="fas fa-tv"></i></span><span class="amenity-label">TV</span><span class="check-icon"><i class="fas fa-check"></i></span></label>
+        <label class="amenity-checkbox"><input type="checkbox" name="amenities" value="Pool"><span class="amenity-icon"><i class="fas fa-water"></i></span><span class="amenity-label">Pool</span><span class="check-icon"><i class="fas fa-check"></i></span></label>
+        <label class="amenity-checkbox"><input type="checkbox" name="amenities" value="Hot Tub"><span class="amenity-icon"><i class="fas fa-hot-tub"></i></span><span class="amenity-label">Hot Tub</span><span class="check-icon"><i class="fas fa-check"></i></span></label>
+        <label class="amenity-checkbox"><input type="checkbox" name="amenities" value="Gym"><span class="amenity-icon"><i class="fas fa-dumbbell"></i></span><span class="amenity-label">Gym</span><span class="check-icon"><i class="fas fa-check"></i></span></label>
+        <label class="amenity-checkbox"><input type="checkbox" name="amenities" value="Elevator"><span class="amenity-icon"><i class="fas fa-arrow-up"></i></span><span class="amenity-label">Elevator</span><span class="check-icon"><i class="fas fa-check"></i></span></label>
+        <label class="amenity-checkbox"><input type="checkbox" name="amenities" value="Pet friendly"><span class="amenity-icon"><i class="fas fa-paw"></i></span><span class="amenity-label">Pet Friendly</span><span class="check-icon"><i class="fas fa-check"></i></span></label>
+        <label class="amenity-checkbox"><input type="checkbox" name="amenities" value="Smoking allowed"><span class="amenity-icon"><i class="fas fa-smoking"></i></span><span class="amenity-label">Smoking</span><span class="check-icon"><i class="fas fa-check"></i></span></label>
+        <label class="amenity-checkbox"><input type="checkbox" name="amenities" value="Family/kid friendly"><span class="amenity-icon"><i class="fas fa-child"></i></span><span class="amenity-label">Family Friendly</span><span class="check-icon"><i class="fas fa-check"></i></span></label>
+        <label class="amenity-checkbox"><input type="checkbox" name="amenities" value="Free parking"><span class="amenity-icon"><i class="fas fa-parking"></i></span><span class="amenity-label">Free Parking</span><span class="check-icon"><i class="fas fa-check"></i></span></label>
+      </div>
+    </div>
+
+    <div class="form-card fade-in location-card">
+      <div class="form-card-title"><i class="fas fa-map-marker-alt"></i> <span class="page-header-brand">Location</span> <span class="page-header-highlight">India</span> <span class="india-flag-badge"><i class="fas fa-flag-checkered"></i></span></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-city"></i> City</label>
+          <select name="city" id="citySelect" class="form-select" required>
+            <option value="Mumbai">Mumbai</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Bangalore">Bangalore</option>
+            <option value="Chennai">Chennai</option>
+            <option value="Hyderabad">Hyderabad</option>
+            <option value="Pune">Pune</option>
+            <option value="Goa">Goa</option>
+            <option value="Kolkata">Kolkata</option>
+            <option value="Jaipur">Jaipur</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-flag"></i> Cleaning Fee</label>
+          <select name="cleaning_fee" class="form-select">
+            <option value="True">Yes</option>
+            <option value="False" selected>No</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-map-pin"></i> Latitude</label>
+          <input type="number" name="latitude" id="latitude" class="form-input" value="19.0760" step="0.000001" min="-90" max="90" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-map-pin"></i> Longitude</label>
+          <input type="number" name="longitude" id="longitude" class="form-input" value="72.8777" step="0.000001" min="-180" max="180" required>
+        </div>
+      </div>
+      <div class="map-container"><div id="map"></div></div>
+    </div>
+
+    <div class="form-card fade-in">
+      <div class="form-card-title"><i class="fas fa-user-circle"></i> Host &amp; Reviews</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-camera"></i> Profile Pic</label>
+          <select name="host_has_profile_pic" class="form-select">
+            <option value="t">Yes</option>
+            <option value="f">No</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-id-card"></i> Verified Host</label>
+          <select name="host_identity_verified" class="form-select">
+            <option value="t">Yes</option>
+            <option value="f">No</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-bolt"></i> Instant Bookable</label>
+          <select name="instant_bookable" class="form-select">
+            <option value="t">Yes</option>
+            <option value="f">No</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-percentage"></i> Response Rate</label>
+          <div class="range-wrapper">
+            <input type="range" name="host_response_rate" id="host_response_rate" value="90" min="0" max="100" step="1">
+            <span class="range-value">90</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-comment"></i> Number of Reviews</label>
+          <div class="range-wrapper">
+            <input type="range" name="number_of_reviews" id="number_of_reviews" value="10" min="0" max="500" step="1">
+            <span class="range-value">10</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-star"></i> Review Score</label>
+          <div class="range-wrapper">
+            <input type="range" name="review_scores_rating" id="review_scores_rating" value="80" min="0" max="100" step="1">
+            <span class="range-value">80</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="submit-section">
+      <button type="submit" class="btn btn-primary btn-lg">
+        <i class="fas fa-magic"></i> Predict Price
+      </button>
+    </div>
+
+  </form>
+
+  <!-- Result -->
+  <div class="result-card" id="resultCard">
+    <div class="result-label">Estimated Nightly Price</div>
+    <div class="result-price" id="finalResult"
+      {% if final_result is not none %}data-price="{{ final_result }}"{% endif %}>
+      {% if final_result is not none %}₹{{ (final_result * 83)|round(2) }}{% endif %}
+    </div>
+    <div style="margin-top:var(--space-2);">
+      <select class="currency-selector" id="currencySelect">
+        <option value="INR">₹ INR</option>
+        <option value="USD">$ USD</option>
+        <option value="EUR">€ EUR</option>
+        <option value="GBP">£ GBP</option>
+        <option value="JPY">¥ JPY</option>
+      </select>
+    </div>
+    <div class="price-range-items">
+      <div class="price-range-item">
+        <div class="label">Low</div>
+        <div class="value" id="priceLow">
+          {% if final_result is not none %}₹{{ ((final_result * 0.8) * 83)|round(2) }}{% endif %}
+        </div>
+      </div>
+      <div class="price-range-item">
+        <div class="label">Typical</div>
+        <div class="value" id="priceTypical">
+          {% if final_result is not none %}₹{{ (final_result * 83)|round(2) }}{% endif %}
+        </div>
+      </div>
+      <div class="price-range-item">
+        <div class="label">High</div>
+        <div class="value" id="priceHigh">
+          {% if final_result is not none %}₹{{ ((final_result * 1.2) * 83)|round(2) }}{% endif %}
+        </div>
+      </div>
+    </div>
+    {% if prediction_id %}
+    <a href="{{url_for('report', prediction_id=prediction_id)}}" class="btn btn-ghost btn-sm" style="margin-top:var(--space-4);">
+      <i class="fas fa-file-alt"></i> View Full Report
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Market Insights -->
+  {% if insights is not none %}
+  <div class="result-card show" id="insightsCard" style="border-top:3px solid var(--primary);">
+    <h3 class="insights-title"><i class="fas fa-chart-bar"></i> Market Insights — {{ selected_city }}</h3>
+
+    <div style="margin-bottom:var(--space-5);">
+      <h4 class="insights-subtitle"><i class="fas fa-door-open"></i> Price by Room Type</h4>
+      <table class="insight-table">
+        {% for rt, price in insights.items() %}
+        <tr>
+          <td>{{ rt }}</td>
+          <td>₹{{ (price * 83)|round(2) if price else 'N/A' }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <div>
+      <h4 class="insights-subtitle"><i class="fas fa-city"></i> Price Across Indian Cities</h4>
+      {% set max_price = max_city_price %}
+      <table class="insight-table">
+        {% for city, price in city_comparison.items() %}
+        <tr>
+          <td>{{ city }}</td>
+          <td style="width:50%;">
+            <div class="insight-bar">
+              <div class="insight-bar-fill" style="width:{{ (price / max_price * 100)|round if price else 0 }}%;"></div>
+            </div>
+          </td>
+          <td>₹{{ (price * 83)|round(2) if price else 'N/A' }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ROI -->
+  {% if final_result is not none %}
+  <div class="result-card show" id="roiCard" style="border-top:3px solid var(--success);">
+    <h3 class="insights-title" style="color:var(--success);"><i class="fas fa-coins"></i> Investment ROI Calculator</h3>
+    <div class="insights-grid">
+      <div class="insight-card">
+        <div class="insight-label">Nightly Price</div>
+        <div class="insight-value" id="roiNightly">${{ final_result }}</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-label">Monthly (80% occ.)</div>
+        <div class="insight-value" id="roiMonthly">${{ (final_result * 24)|round(2) }}</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-label">Yearly (70% occ.)</div>
+        <div class="insight-value" id="roiYearly">${{ (final_result * 255)|round(2) }}</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-label">Yearly (₹)</div>
+        <div class="insight-value" id="roiYearlyINR">₹{{ (final_result * 255 * 83)|round(2) }}</div>
+      </div>
+    </div>
+    <div class="roi-controls">
+      <div class="form-group">
+        <label class="form-label">Occupancy Rate</label>
+        <div class="range-wrapper">
+          <input type="range" id="occupancySlider" value="70" min="30" max="95" step="5">
+          <span class="range-value" id="occupancyDisplay">70</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Avg. Nights per Booking</label>
+        <div class="range-wrapper">
+          <input type="range" id="nightsSlider" value="3" min="1" max="14" step="1">
+          <span class="range-value" id="nightsDisplay">3</span>
+        </div>
+      </div>
+    </div>
+    <div id="roiDynamic" class="roi-result">
+      <span>Estimated annual revenue at 70% occupancy: </span>
+      <strong style="font-size:var(--text-lg);color:var(--success);">${{ (final_result * 255)|round(2) }}</strong>
+      <span> (₹{{ (final_result * 255 * 83)|round(2) }})</span>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+{% endblock %}
