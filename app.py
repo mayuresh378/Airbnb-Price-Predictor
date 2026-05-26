@@ -45,7 +45,39 @@ predict_pipeline = PredictPipeline()
 INDIAN_CITY_MAP = {
     "Mumbai": "NYC", "Delhi": "DC", "Bangalore": "SF",
     "Chennai": "Chicago", "Hyderabad": "SF", "Pune": "Boston",
-    "Goa": "LA", "Kolkata": "Chicago", "Jaipur": "Boston"
+    "Goa": "LA", "Kolkata": "Chicago", "Jaipur": "Boston",
+    "Ahmedabad": "NYC", "Surat": "NYC", "Vadodara": "NYC",
+    "Jaipur": "Boston", "Udaipur": "Boston", "Jodhpur": "Boston", "Jaisalmer": "NYC",
+    "Kochi": "LA", "Trivandrum": "LA", "Alleppey": "LA", "Kozhikode": "LA",
+    "Amritsar": "Chicago", "Chandigarh": "DC", "Ludhiana": "Chicago",
+    "Indore": "NYC", "Bhopal": "Chicago",
+    "Lucknow": "DC", "Varanasi": "DC", "Agra": "DC",
+    "Dehradun": "SF", "Rishikesh": "LA", "Nainital": "SF",
+    "Shimla": "SF", "Manali": "Boston", "Dharamshala": "Boston",
+    "Nashik": "Boston", "Nagpur": "Chicago",
+    "Mysore": "SF", "Mangalore": "LA", "Coimbatore": "Chicago",
+    "Panaji": "LA", "Calangute": "LA",
+    "Noida": "DC", "Gurgaon": "DC", "Faridabad": "DC",
+    "Digha": "Chicago", "Darjeeling": "Boston",
+    "Madurai": "Chicago", "Warangal": "SF"
+}
+
+INDIAN_STATES = {
+    "Maharashtra": ["Mumbai", "Pune", "Nashik", "Nagpur"],
+    "Delhi NCR": ["Delhi", "Noida", "Gurgaon", "Faridabad"],
+    "Karnataka": ["Bangalore", "Mysore", "Mangalore"],
+    "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai"],
+    "Telangana": ["Hyderabad", "Warangal"],
+    "Goa": ["Goa", "Panaji", "Calangute"],
+    "West Bengal": ["Kolkata", "Digha", "Darjeeling"],
+    "Rajasthan": ["Jaipur", "Udaipur", "Jodhpur", "Jaisalmer"],
+    "Kerala": ["Kochi", "Trivandrum", "Alleppey", "Kozhikode"],
+    "Gujarat": ["Ahmedabad", "Surat", "Vadodara"],
+    "Uttarakhand": ["Dehradun", "Rishikesh", "Nainital"],
+    "Himachal Pradesh": ["Shimla", "Manali", "Dharamshala"],
+    "Punjab": ["Amritsar", "Chandigarh", "Ludhiana"],
+    "Madhya Pradesh": ["Indore", "Bhopal"],
+    "Uttar Pradesh": ["Lucknow", "Varanasi", "Agra"]
 }
 
 US_TO_INDIAN = {}
@@ -81,7 +113,21 @@ INDIAN_COORDS = {
     "Bangalore": (12.9716, 77.5946), "Chennai": (13.0827, 80.2707),
     "Hyderabad": (17.3850, 78.4867), "Pune": (18.5204, 73.8567),
     "Goa": (15.4909, 73.8278), "Kolkata": (22.5726, 88.3639),
-    "Jaipur": (26.9124, 75.7873)
+    "Jaipur": (26.9124, 75.7873),
+    "Ahmedabad": (23.0225, 72.5714), "Surat": (21.1702, 72.8311), "Vadodara": (22.3072, 73.1812),
+    "Udaipur": (24.5854, 73.7125), "Jodhpur": (26.2389, 73.0243), "Jaisalmer": (26.9157, 70.9083),
+    "Kochi": (9.9312, 76.2673), "Trivandrum": (8.5241, 76.9366), "Alleppey": (9.4981, 76.3388), "Kozhikode": (11.2588, 75.7804),
+    "Amritsar": (31.6340, 74.8723), "Chandigarh": (30.7333, 76.7794), "Ludhiana": (30.9010, 75.8573),
+    "Indore": (22.7196, 75.8577), "Bhopal": (23.2599, 77.4126),
+    "Lucknow": (26.8467, 80.9462), "Varanasi": (25.3176, 82.9739), "Agra": (27.1767, 78.0081),
+    "Dehradun": (30.3165, 78.0322), "Rishikesh": (30.0869, 78.2676), "Nainital": (29.3803, 79.4626),
+    "Shimla": (31.1048, 77.1734), "Manali": (32.2432, 77.1892), "Dharamshala": (32.2190, 76.3234),
+    "Nashik": (19.9975, 73.7898), "Nagpur": (21.1458, 79.0882),
+    "Mysore": (12.2958, 76.6394), "Mangalore": (12.9141, 74.8560), "Coimbatore": (11.0168, 76.9558),
+    "Panaji": (15.4909, 73.8278), "Calangute": (15.5439, 73.7553),
+    "Noida": (28.5355, 77.3910), "Gurgaon": (28.4595, 77.0266), "Faridabad": (28.4089, 77.3178),
+    "Digha": (21.6737, 87.5465), "Darjeeling": (27.0410, 88.2663),
+    "Madurai": (9.9252, 78.1198), "Warangal": (17.9784, 79.5941)
 }
 
 RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY", "")
@@ -360,7 +406,8 @@ def predict():
             )
 
             live_prices = {}
-            for city in ["Mumbai", "Delhi", "Bangalore", "Chennai", "Hyderabad", "Pune", "Goa", "Kolkata", "Jaipur"]:
+            all_cities = [c for state_cities in INDIAN_STATES.values() for c in state_cities]
+            for city in all_cities:
                 lp = fetch_live_prices(city)
                 if lp:
                     live_prices[city] = lp
@@ -368,19 +415,22 @@ def predict():
             return render_template("predict.html", final_result=result,
                                    insights=insights, city_comparison=city_comparison,
                                    selected_city=indian_city, max_city_price=max_city_price,
-                                   prediction_id=pred.id, live_prices=live_prices)
+                                   prediction_id=pred.id, live_prices=live_prices,
+                                   indian_states=INDIAN_STATES)
 
         except Exception as e:
             flash(f"Prediction error: {str(e)}", "error")
             return render_template("predict.html", final_result=None,
                                    insights=None, city_comparison=None,
                                    selected_city=None, max_city_price=None,
-                                   prediction_id=None, live_prices={})
+                                   prediction_id=None, live_prices={},
+                                   indian_states=INDIAN_STATES)
 
     return render_template("predict.html", final_result=None,
                            insights=None, city_comparison=None,
                            selected_city=None, max_city_price=None,
-                           prediction_id=None, live_prices={})
+                           prediction_id=None, live_prices={},
+                           indian_states=INDIAN_STATES)
 
 # ─── Dashboard ──────────────────────────────────────────────────────
 

@@ -162,15 +162,13 @@
         <div class="form-group">
           <label class="form-label"><i class="fas fa-city"></i> City</label>
           <select name="city" id="citySelect" class="form-select" required>
-            <option value="Mumbai">Mumbai</option>
-            <option value="Delhi">Delhi</option>
-            <option value="Bangalore">Bangalore</option>
-            <option value="Chennai">Chennai</option>
-            <option value="Hyderabad">Hyderabad</option>
-            <option value="Pune">Pune</option>
-            <option value="Goa">Goa</option>
-            <option value="Kolkata">Kolkata</option>
-            <option value="Jaipur">Jaipur</option>
+            {% for state, cities in indian_states.items() %}
+            <optgroup label="{{ state }}">
+              {% for c in cities %}
+              <option value="{{ c }}">{{ c }}</option>
+              {% endfor %}
+            </optgroup>
+            {% endfor %}
           </select>
         </div>
         <div class="form-group">
